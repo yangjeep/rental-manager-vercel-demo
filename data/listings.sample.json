@@ -1,0 +1,38 @@
+[
+  {
+    "ID": "1",
+    "Title": "Bright 2BR near Carleton U",
+    "Slug": "bright-2br-near-carleton-u",
+    "Price": 2150,
+    "City": "Ottawa",
+    "Bedrooms": 2,
+    "Status": "Available",
+    "ImageURL": "/placeholder.jpg",
+    "Description": "Sunny 2-bedroom apartment close to Carleton University. Heat and water included.",
+    "Address": "123 King St, Ottawa, ON"
+  },
+  {
+    "ID": "2",
+    "Title": "Downtown 1BR Condo",
+    "Slug": "downtown-1br-condo",
+    "Price": 1950,
+    "City": "Ottawa",
+    "Bedrooms": 1,
+    "Status": "Pending",
+    "ImageURL": "/placeholder.jpg",
+    "Description": "Modern condo in the heart of downtown. Steps to transit and shops.",
+    "Address": "456 Queen St, Ottawa, ON"
+  },
+  {
+    "ID": "3",
+    "Title": "Family Home in Kanata (3BR)",
+    "Slug": "family-home-kanata-3br",
+    "Price": 2850,
+    "City": "Kanata",
+    "Bedrooms": 3,
+    "Status": "Rented",
+    "ImageURL": "/placeholder.jpg",
+    "Description": "Spacious detached home with finished basement and fenced yard.",
+    "Address": "789 Maple Ave, Kanata, ON"
+  }
+]
