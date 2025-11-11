@@ -72,10 +72,48 @@ To automatically fetch images from Google Drive folders:
 - ISR is set via `REVALIDATE_SECONDS` (default 60 for preview).
 - Manual revalidate endpoint: `/api/revalidate?secret=...` with env `REVALIDATE_SECRET`.
 
+## Performance Testing
+
+Lighthouse CI is integrated to monitor performance, accessibility, best practices, and SEO.
+
+### Running Lighthouse Locally
+
+```bash
+# Install dependencies first
+npm install
+
+# Set baseline from current performance (run once)
+npm run build
+npm run start  # In another terminal
+npm run lighthouse:baseline  # Captures current performance as baseline
+
+# Run Lighthouse CI tests
+npm run lighthouse
+
+# Or run a quick local test
+npm run lighthouse:local
+```
+
+**Setting Baseline**: Run `npm run lighthouse:baseline` once to capture your current performance metrics and set them as the baseline thresholds. This ensures tests don't fail on your first run and allows you to track performance regressions.
+
+### GitHub Actions
+
+Lighthouse tests run automatically on:
+- Every push to `main`/`master` branch
+- Every pull request to `main`/`master` branch
+- Manual trigger via GitHub Actions UI
+
+Results are uploaded as artifacts and the workflow will fail if performance thresholds are not met:
+- Performance: ≥ 80
+- Accessibility: ≥ 90
+- Best Practices: ≥ 90
+- SEO: ≥ 90
+
 ## Tech
 
 - Next.js App Router
 - Tailwind CSS
+- Lighthouse CI for performance monitoring
 - No backend server needed
 
 ### Environment Variables
