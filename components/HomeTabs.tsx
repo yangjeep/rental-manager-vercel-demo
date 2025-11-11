@@ -9,16 +9,17 @@ import type { Listing } from "@/lib/types";
 
 type HomeTabsProps = {
   filteredListings: Listing[];
+  allListings?: Listing[];
 };
 
-export default function HomeTabs({ filteredListings }: HomeTabsProps) {
+export default function HomeTabs({ filteredListings, allListings }: HomeTabsProps) {
   const tabs: Tab[] = [
     {
       id: "overview",
       label: "Overview",
       content: (
         <div className="space-y-6">
-          <Filters />
+          <Filters allListings={allListings || filteredListings} />
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredListings.map((l: Listing) => (
               <ListingCard key={l.id} listing={l} />
@@ -35,7 +36,7 @@ export default function HomeTabs({ filteredListings }: HomeTabsProps) {
       label: "Map",
       content: (
         <div className="space-y-6">
-          <Filters />
+          <Filters allListings={allListings || filteredListings} />
           <GoogleMap listings={filteredListings} height="600px" />
         </div>
       ),
@@ -45,7 +46,7 @@ export default function HomeTabs({ filteredListings }: HomeTabsProps) {
       label: "Details",
       content: (
         <div className="space-y-6">
-          <Filters />
+          <Filters allListings={allListings || filteredListings} />
           <div className="card p-6">
             <h2 className="text-2xl font-semibold mb-4">Property Statistics</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

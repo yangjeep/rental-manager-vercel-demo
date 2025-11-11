@@ -1,8 +1,13 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
+import type { Listing } from "@/lib/types";
 
-export default function Filters() {
+type FiltersProps = {
+  allListings?: Listing[];
+};
+
+export default function Filters({ allListings }: FiltersProps = {}) {
   const router = useRouter();
   const sp = useSearchParams();
   const [city, setCity] = useState(sp.get("city") || "");
@@ -10,6 +15,18 @@ export default function Filters() {
   const [min, setMin] = useState(sp.get("min") || "");
   const [max, setMax] = useState(sp.get("max") || "");
   const [status, setStatus] = useState(sp.get("status") || "");
+
+  // Get available cities from all listings
+  const availableCities = useMemo(() => {
+    if (!allListings) return [];
+    const cities = new Set<string>();
+    allListings.forEach(listing => {
+      if (listing.city && listing.city.trim()) {
+        cities.add(listing.city.trim());
+      }
+    });
+    return Array.from(cities).sort();
+  }, [allListings]);
 
   useEffect(() => {
     setCity(sp.get("city") || "");
@@ -21,7 +38,7 @@ export default function Filters() {
 
   const apply = useCallback(() => {
     const p = new URLSearchParams();
-    if (city) p.set("city", city);
+    if (city && city !== "All") p.set("city", city);
     if (bedrooms) p.set("bedrooms", bedrooms);
     if (min) p.set("min", min);
     if (max) p.set("max", max);
@@ -39,7 +56,18 @@ export default function Filters() {
       <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
         <div>
           <div className="label mb-1">City</div>
-          <input className="input w-full" value={city} onChange={e => setCity(e.target.value)} placeholder="Ottawa" />
+          {availableCities.length > 0 ? (
+            <select className="input w-full" value={city || "All"} onChange={e => setCity(e.target.value)}>
+              <option value="All">All</option>
+              {availableCities.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input className="input w-full" value={city} onChange={e => setCity(e.target.value)} placeholder="Ottawa" />
+          )}
         </div>
         <div>
           <div className="label mb-1">Bedrooms ≥</div>
