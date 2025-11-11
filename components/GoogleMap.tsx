@@ -1,6 +1,7 @@
 "use client";
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from "@react-google-maps/api";
+import Link from "next/link";
 import type { Listing } from "@/lib/types";
 
 type GoogleMapProps = {
@@ -219,7 +220,14 @@ function MapWithMarkers({ properties, height, isLoaded }: { properties: Listing[
             {selectedMarker === index && (
               <InfoWindow onCloseClick={() => setSelectedMarker(null)}>
                 <div className="text-black p-2">
-                  <h3 className="font-semibold text-sm mb-1">{marker.listing.title}</h3>
+                  <h3 className="font-semibold text-sm mb-1">
+                    <Link 
+                      href={`/properties/${marker.listing.slug}`}
+                      className="text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      {marker.listing.title}
+                    </Link>
+                  </h3>
                   <p className="text-xs opacity-80 mb-1">
                     ${marker.listing.price.toLocaleString()} / month · {marker.listing.bedrooms} BR
                   </p>
