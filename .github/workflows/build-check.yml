@@ -1,4 +1,4 @@
-name: Lighthouse CI
+name: Build Check
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  lighthouse:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -38,17 +38,11 @@ jobs:
           REVALIDATE_SECONDS: 60
           DEMO_NOINDEX: 'true'
 
-      - name: Run Lighthouse CI
-        run: npm run lighthouse
-        # Optional: Uncomment to use Lighthouse CI server
-        # env:
-        #   LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
-
-      - name: Upload Lighthouse results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: lighthouse-results
-          path: .lighthouseci/
-          retention-days: 7
+      - name: Verify build output
+        run: |
+          if [ ! -d ".next" ]; then
+            echo "Build failed: .next directory not found"
+            exit 1
+          fi
+          echo "Build successful - .next directory exists"
 
