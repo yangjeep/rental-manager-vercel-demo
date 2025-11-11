@@ -1,4 +1,4 @@
-# Rentals Demo (Next.js + Google Sheets)
+# Rentals Demo (Next.js + Airtable)
 
 A ready-to-deploy demo environment for a rental listings website.
 
@@ -7,18 +7,34 @@ A ready-to-deploy demo environment for a rental listings website.
 ```bash
 npm install
 cp env.example .env.local
-# Edit NEXT_PUBLIC_LISTINGS_URL (Google Apps Script deploy URL)
+# Edit AIRTABLE_TOKEN, AIRTABLE_BASE_ID, and AIRTABLE_TABLE_NAME (optional)
 npm run dev
 ```
 
 Deploy to Vercel and set the same env vars in Project Settings.
 
-## Datasource (Google Sheets → Apps Script)
+## Datasource (Airtable)
 
-Sheet name: `Listings`
-Headers: `ID | Title | Slug | Price | City | Bedrooms | Status | ImageURL | Description | Address`
+Table name: `Properties` (default, configurable via `AIRTABLE_TABLE_NAME`)
 
-`/scripts/apps_script.gs` contains the doGet() script. Deploy as a Web App with "Anyone" access.
+### Required Fields
+
+- `ID` — Unique identifier (string)
+- `Title` — Property title
+- `Monthly Rent` — Monthly rental price (number)
+- `Bedrooms` — Number of bedrooms (number)
+- `Bathrooms` — Number of bathrooms (number)
+- `Status` — Availability status (e.g., "Available")
+- `City` — City name
+- `Address` — Full address
+- `Description` — Property description
+
+### Optional Fields
+
+- `Slug` — URL-friendly identifier (auto-generated from Title if not provided)
+- `Pets` — Pet policy (e.g., "Allowed", "Not Allowed", "Conditional")
+- `Parking` — Parking information (accepts "Yes/No", "True/False", "1/0", or free text like "1 spot", "Street")
+- `Image Folder URL` — Google Drive folder URL or folder ID for property images
 
 ## Security / Demo
 
@@ -37,9 +53,9 @@ Headers: `ID | Title | Slug | Price | City | Bedrooms | Status | ImageURL | Desc
 - Tailwind CSS
 - No backend server needed
 
-### New Columns (optional but supported)
+### Environment Variables
 
-- `Parking` — accepts "Yes/No", "True/False", "1/0", or free text like "1 spot", "Street".
-- `Pets` — recommended values: "Allowed" / "Not Allowed" / "Conditional".
-- `UtilitiesIncluded` — comma-separated list, e.g., `Heat, Water, Electricity`.
-- `ImageURLs` — comma- or newline-separated image URLs for the gallery. First image will be used as the cover.
+- `AIRTABLE_TOKEN` — Airtable API token (required)
+- `AIRTABLE_BASE_ID` — Airtable base ID (required)
+- `AIRTABLE_TABLE_NAME` — Table name (optional, defaults to "Properties")
+- `DRIVE_LIST_ENDPOINT` — Optional endpoint for fetching images from Google Drive folders
