@@ -39,26 +39,8 @@ export default function PropertyTabs({ listing }: PropertyTabsProps) {
       ),
     },
     {
-      id: "details",
-      label: "Details",
-      content: (
-        <div className="space-y-6">
-          <h2 className="text-2xl font-semibold">{listing.title}</h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <Info label="Status" value={listing.status} />
-            <Info label="Parking" value={fmtParking(listing.parking)} />
-            <Info label="Pets" value={listing.pets || "—"} />
-            <Info label="Address" value={listing.address || "—"} />
-            <Info label="Price" value={fmtPrice(listing.price)} />
-            <Info label="Bedrooms" value={String(listing.bedrooms)} />
-            <Info label="City" value={listing.city} />
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: "contact",
-      label: "Contact",
+      id: "apply",
+      label: "Submit an Application",
       content: (
         <div className="space-y-6">
           <ContactForm listingTitle={listing.title} />
@@ -75,21 +57,7 @@ export default function PropertyTabs({ listing }: PropertyTabsProps) {
   return <TabbedLayout tabs={tabs} defaultTab="overview" />;
 }
 
-function Info({ label, value }: { label: string; value?: string }) {
-  return (
-    <div className="card p-4">
-      <div className="label mb-1">{label}</div>
-      <div>{value || "—"}</div>
-    </div>
-  );
-}
-
 function fmtPrice(n: number) {
   return `$${(n || 0).toLocaleString()}`;
-}
-
-function fmtParking(v: string | undefined): string {
-  if (v && v.trim()) return v.trim();
-  return "—";
 }
 
