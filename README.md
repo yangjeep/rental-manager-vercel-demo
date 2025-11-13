@@ -122,3 +122,4 @@ Results are uploaded as artifacts and the workflow will fail if performance thre
 - `AIRTABLE_BASE_ID` — Airtable base ID (required)
 - `AIRTABLE_TABLE_NAME` — Table name (optional, defaults to "Properties")
 - `DRIVE_LIST_ENDPOINT` — Optional endpoint for fetching images from Google Drive folders (see "Setting Up Google Drive Images" above)
+
