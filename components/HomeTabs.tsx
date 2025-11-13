@@ -35,8 +35,8 @@ export default function HomeTabs({ filteredListings, allListings }: HomeTabsProp
               />
             </div>
             {/* Listings Section - 30% on desktop */}
-            <div className="w-full lg:w-[30%]">
-              <div className="flex flex-col gap-6 overflow-y-auto pr-2 pb-4" style={{ height: "600px", overflowX: "hidden" }}>
+            <div className="w-full lg:w-[30%] lg:max-h-[600px] lg:overflow-y-auto lg:pr-2">
+              <div className="flex flex-col gap-6">
                 {filteredListings.map((l: Listing) => (
                   <ListingCard 
                     key={l.id} 
