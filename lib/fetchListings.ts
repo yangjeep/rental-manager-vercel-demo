@@ -66,7 +66,7 @@ export async function fetchListings(): Promise<Listing[]> {
   const json = await res.json();
 
   // 先做基础字段映射
-  const baseItems: Listing[] = (json.records as AirtableRecord[]).map(({ fields }) => {
+  const baseItems: Listing[] = (json.records as AirtableRecord[]).map(({ id, fields }) => {
     // 基础字段名完全按你截图里的列来取：
     const title: string = fields["Title"] ?? "";
     // Ensure slug is always a string
@@ -90,6 +90,7 @@ export async function fetchListings(): Promise<Listing[]> {
 
     return {
       id: fields["ID"] ? String(fields["ID"]) : slug || crypto.randomUUID(),
+      airtableRecordId: id, // Capture the actual Airtable record ID
       title,
       slug,
       price,
