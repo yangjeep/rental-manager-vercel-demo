@@ -11,7 +11,18 @@ cp env.example .env.local
 npm run dev
 ```
 
-Deploy to Vercel and set the same env vars in Project Settings.
+### Deploying on Cloudflare Pages
+
+The repo ships with a `wrangler.toml` that targets Cloudflare Pages. Build using the
+Next.js → Workers adapter and then deploy:
+
+```bash
+npm run cf:build                 # runs next build + @cloudflare/next-on-pages
+npx wrangler pages deploy .vercel/output/static --project-name <pages-project>
+```
+
+Use `npm run cf:preview` for local Pages emulation. All environment variables listed
+in `.env.example` should be configured in the Cloudflare Pages dashboard.
 
 ## Datasource (Airtable)
 
@@ -60,6 +71,26 @@ To automatically fetch images from Google Drive folders:
    - It should return a JSON array of image URLs
 
 **Note**: Without `DRIVE_LIST_ENDPOINT`, the app will still work but won't automatically load images. You can use `imageFolderUrl` to link to the Google Drive folder directly.
+
+## Cloudflare R2 Image Automation
+
+The `workers/r2-sync` Cloudflare Worker keeps Airtable, Google Drive, and R2 in sync:
+
+1. **Create Cloudflare resources**
+   - Provision an R2 bucket (e.g. `rental-images`) and attach a public domain or custom hostname. Set that hostname in `R2_PUBLIC_BASE_URL`.
+   - Deploy the worker:
+     ```bash
+     cd workers/r2-sync
+     npx wrangler deploy
+     ```
+   - Bind the R2 bucket and set worker secrets (`AIRTABLE_TOKEN`, `AIRTABLE_BASE_ID`, `AIRTABLE_TABLE_NAME`, `DRIVE_LIST_ENDPOINT`, `R2_PUBLIC_BASE_URL`). Defaults for field names come from `.env.example`.
+2. **Wire Airtable automations**
+   - Create an Airtable automation that triggers on `Image Folder URL` changes (or whenever you need to refresh images).
+   - Add a "Run script" step that calls the worker URL with JSON `{ "recordId": "recXXXX" }`.
+3. **Worker behaviour**
+   - Looks up the record, reads the Google Drive folder ID, uses `DRIVE_LIST_ENDPOINT` to list files, copies each file into R2, and updates the `R2 Images` attachment field with the new public URLs.
+
+Once the automation finishes, the frontend will automatically prefer the `R2 Images` attachments over the legacy Google Drive proxy, so listings immediately display assets served from Cloudflare.
 
 ## Security / Demo
 
@@ -121,4 +152,7 @@ Results are uploaded as artifacts and the workflow will fail if performance thre
 - `AIRTABLE_TOKEN` — Airtable API token (required)
 - `AIRTABLE_BASE_ID` — Airtable base ID (required)
 - `AIRTABLE_TABLE_NAME` — Table name (optional, defaults to "Properties")
+- `AIRTABLE_IMAGE_FOLDER_FIELD` — Airtable field containing the Google Drive folder reference (defaults to "Image Folder URL")
+- `AIRTABLE_R2_IMAGE_FIELD` — Attachment field that stores Cloudflare R2 image URLs (defaults to "R2 Images")
 - `DRIVE_LIST_ENDPOINT` — Optional endpoint for fetching images from Google Drive folders (see "Setting Up Google Drive Images" above)
+- `R2_PUBLIC_BASE_URL` — Public hostname that serves the uploaded R2 objects (used by the worker when updating Airtable)

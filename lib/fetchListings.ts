@@ -1,4 +1,5 @@
 // lib/fetchListings.airtable.ts
+import { parseDriveFolderId } from "./drive";
 import type { Listing } from "./types";
 
 // ---------- helpers ----------
@@ -9,23 +10,17 @@ function toNum(v: any): number {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 }
-function parseBoolish(v: any): boolean | undefined {
-  if (v === undefined || v === null) return undefined;
-  const s = String(v).trim().toLowerCase();
-  if (["y", "yes", "true", "1"].includes(s)) return true;
-  if (["n", "no", "false", "0"].includes(s)) return false;
-  return undefined;
-}
-/** 支持粘贴整条 Google Drive folder 链接 或 直接粘 folderId */
-function parseDriveFolderId(input?: string | null): string | undefined {
-  if (!input) return undefined;
-  const s = String(input).trim();
-  // .../drive/folders/<id>
-  const m = s.match(/\/folders\/([A-Za-z0-9_\-]+)/);
-  if (m) return m[1];
-  // 直接给了 id
-  if (/^[A-Za-z0-9_\-]{10,}$/.test(s)) return s;
-  return undefined;
+function extractAttachmentUrls(value: unknown): string[] | undefined {
+  if (!value) return undefined;
+  const asArray = Array.isArray(value) ? value : [value];
+  const urls = asArray
+    .map((entry: any) => {
+      if (entry && typeof entry.url === "string") return entry.url;
+      if (typeof entry === "string") return entry;
+      return undefined;
+    })
+    .filter((url): url is string => typeof url === "string" && url.trim().length > 0);
+  return urls.length ? urls : undefined;
 }
 
 // ---------- airtable fetch ----------
@@ -35,6 +30,8 @@ export async function fetchListings(): Promise<Listing[]> {
   const token = process.env.AIRTABLE_TOKEN;
   const baseId = process.env.AIRTABLE_BASE_ID;
   const table = process.env.AIRTABLE_TABLE_NAME || "Properties";
+  const folderField = process.env.AIRTABLE_IMAGE_FOLDER_FIELD || "Image Folder URL";
+  const r2Field = process.env.AIRTABLE_R2_IMAGE_FIELD || "R2 Images";
   if (!token || !baseId) {
     // In CI/build environments, return empty array instead of throwing
     // This allows builds to succeed even without Airtable credentials
@@ -86,7 +83,9 @@ export async function fetchListings(): Promise<Listing[]> {
     const parking = rawParking != null ? String(rawParking).trim() : undefined;
 
     // 封面：如果你以后加了 Attachments 字段，这里可优先取附件的第一张
-    const imageFolderUrl: string | undefined = fields["Image Folder URL"] || undefined;
+    const rawFolder = fields[folderField];
+    const imageFolderUrl: string | undefined = rawFolder != null ? String(rawFolder) : undefined;
+    const r2Images = extractAttachmentUrls(fields[r2Field]);
 
     return {
       id: fields["ID"] ? String(fields["ID"]) : slug || crypto.randomUUID(),
@@ -102,8 +101,8 @@ export async function fetchListings(): Promise<Listing[]> {
       pets,
       description,
       imageFolderUrl,
-      imageUrl: "/placeholder.jpg", // 默认使用 placeholder
-      images: undefined,   // 若配置了 DRIVE_LIST_ENDPOINT，会去拉取
+      imageUrl: r2Images?.[0] || "/placeholder.jpg",
+      images: r2Images,
     };
   });
 
@@ -116,6 +115,9 @@ export async function fetchListings(): Promise<Listing[]> {
 
   // 顺序拉取图片列表（缓存 1 小时）
   for (const item of baseItems) {
+    if (item.images && item.images.length > 0) {
+      continue;
+    }
     const folderId = parseDriveFolderId(item.imageFolderUrl);
     if (!folderId) {
       continue;
