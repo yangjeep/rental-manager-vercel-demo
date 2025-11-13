@@ -1,4 +1,4 @@
-# Rentals Demo (Next.js + Airtable)
+# Welcome to Rent-In-Ottawa! (Next.js + Airtable)
 
 A ready-to-deploy demo environment for a rental listings website.
 
