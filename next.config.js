@@ -11,6 +11,10 @@ const nextConfig = {
       },
     ],
   },
+  // Skip middleware to avoid async_hooks bundling issues with Cloudflare adapter
+  experimental: {
+    middlewareBundling: false,
+  },
 };
 
 module.exports = nextConfig;
