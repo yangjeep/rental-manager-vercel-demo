@@ -13,6 +13,7 @@ export type Listing = {
   description?: string;
 
   imageUrl?: string;             // R2-hosted cover image
+  images?: string[];             // R2-hosted image gallery
 };
 
 export type GeocodedListing = Listing & {

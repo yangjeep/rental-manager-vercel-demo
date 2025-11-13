@@ -82,8 +82,12 @@ export async function fetchListings(env: EnvSource = {}): Promise<Listing[]> {
     const rawParking = fields["Parking"];
     const parking = rawParking != null ? String(rawParking).trim() : undefined;
 
-    // R2 attachment field provides the cover image
+    // R2 attachment field provides the cover image and gallery
     const r2Images = extractAttachmentUrls(fields[r2Field]);
+    const fallbackImages = ["/placeholder.jpg", "/placeholder2.jpg"];
+    // Use R2 images if available, otherwise use fallbacks
+    // If only 1 R2 image, use it alone (no placeholders)
+    const images = r2Images && r2Images.length > 0 ? r2Images : fallbackImages;
 
     return {
       id: fields["ID"] ? String(fields["ID"]) : slug || crypto.randomUUID(),
@@ -98,16 +102,10 @@ export async function fetchListings(env: EnvSource = {}): Promise<Listing[]> {
       parking,
       pets,
       description,
-      imageUrl: r2Images?.[0] || "/placeholder.jpg",
+      imageUrl: images[0],
+      images: images,
     };
   });
-
-  // 确保所有 items 都有 imageUrl，如果没有则使用 placeholder
-  for (const item of baseItems) {
-    if (!item.imageUrl || item.imageUrl.trim() === "") {
-      item.imageUrl = "/placeholder.jpg";
-    }
-  }
 
   return baseItems;
 }
