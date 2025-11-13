@@ -12,7 +12,7 @@
     "lighthouse": "lhci autorun",
     "lighthouse:local": "lighthouse http://localhost:3000 --output html --output-path ./lighthouse-report.html --view",
     "lighthouse:baseline": "node scripts/generate-lighthouse-baseline.js",
-    "pages:build": "npx @cloudflare/next-on-pages",
+    "pages:build": "node scripts/patch-adapter.js && npx @cloudflare/next-on-pages",
     "pages:deploy": "npm run pages:build && wrangler pages deploy .vercel/output/static"
   },
   "dependencies": {
@@ -21,7 +21,7 @@
     "react-dom": "^18.3.0"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "1.11.0",
+    "@cloudflare/next-on-pages": "^1.11.0",
     "@lhci/cli": "^0.12.0",
     "@types/node": "24.10.1",
     "@types/react": "^18.3.0",
