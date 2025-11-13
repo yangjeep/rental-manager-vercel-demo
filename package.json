@@ -10,12 +10,12 @@
     "typecheck": "tsc --noEmit",
     "lighthouse": "lhci autorun",
     "lighthouse:local": "lighthouse http://localhost:3000 --output html --output-path ./lighthouse-report.html --view",
-    "lighthouse:baseline": "node scripts/generate-lighthouse-baseline.js"
+    "lighthouse:baseline": "node scripts/generate-lighthouse-baseline.js",
+    "cf:build": "npx @cloudflare/next-on-pages@1 --experimental-minify",
+    "cf:preview": "npx wrangler pages dev .vercel/output/static --compatibility-date=2024-12-18"
   },
   "dependencies": {
     "@react-google-maps/api": "^2.20.7",
-    "@vercel/analytics": "^1.5.0",
-    "@vercel/speed-insights": "^1.2.0",
     "next": "14.2.33",
     "react": "18.3.1",
     "react-dom": "18.3.1"

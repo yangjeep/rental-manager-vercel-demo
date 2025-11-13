@@ -9,7 +9,7 @@ export function middleware(req: NextRequest) {
   const user = process.env.DEMO_USER || "demo";
   const pass = process.env.DEMO_PASS || "demo123";
   const authHeader = req.headers.get("authorization") || "";
-  const expected = "Basic " + Buffer.from(`${user}:${pass}`).toString("base64");
+  const expected = encodeBasicHeader(user, pass);
   if (authHeader === expected) return NextResponse.next();
   return new NextResponse("Auth required", {
     status: 401,
@@ -20,3 +20,14 @@ export function middleware(req: NextRequest) {
 export const config = {
   matcher: ["/((?!api|_next|favicon.ico|robots.txt|sitemap.xml).*)"],
 };
+
+function encodeBasicHeader(user: string, pass: string): string {
+  const credentials = `${user}:${pass}`;
+  if (typeof globalThis.btoa === "function") {
+    return "Basic " + globalThis.btoa(credentials);
+  }
+  if (typeof Buffer !== "undefined") {
+    return "Basic " + Buffer.from(credentials, "utf-8").toString("base64");
+  }
+  throw new Error("Base64 encoding is not available in this runtime");
+}
