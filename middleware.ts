@@ -1,13 +1,32 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { readEnv, envFlag } from '@/lib/env';
+
+// Helper functions for Edge runtime (no external imports)
+function readEnv(key: string): string | undefined {
+  return process.env[key];
+}
+
+function envFlag(key: string): boolean {
+  const value = readEnv(key);
+  if (!value) return false;
+  return value === "1" || value.toLowerCase() === "true";
+}
+
+function decodeBasic(value: string): string {
+  // Use Web API atob for Edge runtime compatibility
+  if (typeof atob === "function") {
+    return atob(value);
+  }
+  // Fallback (shouldn't be needed in Edge runtime)
+  throw new Error("No base64 decoder available");
+}
 
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
   
   // Handle Basic Auth
-  const user = readEnv(undefined, "DEMO_USER");
-  const pass = readEnv(undefined, "DEMO_PASS");
+  const user = readEnv("DEMO_USER");
+  const pass = readEnv("DEMO_PASS");
   
   if (user && pass) {
     const authHeader = request.headers.get("authorization");
@@ -21,7 +40,7 @@ export function middleware(request: NextRequest) {
       });
     }
     
-    const decoded = Buffer.from(authHeader.slice(6), "base64").toString("utf8");
+    const decoded = decodeBasic(authHeader.slice(6));
     const [providedUser, providedPass] = decoded.split(":");
     
     if (providedUser !== user || providedPass !== pass) {
@@ -35,7 +54,7 @@ export function middleware(request: NextRequest) {
   }
   
   // Handle X-Robots-Tag for DEMO_NOINDEX
-  const noIndex = envFlag(undefined, "DEMO_NOINDEX");
+  const noIndex = envFlag("DEMO_NOINDEX");
   if (noIndex) {
     response.headers.set("X-Robots-Tag", "noindex, nofollow");
   }

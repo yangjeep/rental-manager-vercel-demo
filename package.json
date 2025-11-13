@@ -16,12 +16,12 @@
     "pages:deploy": "npm run pages:build && wrangler pages deploy .vercel/output/static"
   },
   "dependencies": {
-    "next": "^14.3.0",
+    "next": "14.2.15",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "^1.13.0",
+    "@cloudflare/next-on-pages": "1.11.0",
     "@lhci/cli": "^0.12.0",
     "@types/node": "24.10.1",
     "@types/react": "^18.3.0",

@@ -5,9 +5,13 @@ export type EnvSource = Record<string, string | undefined> | undefined;
  * Works with both Next.js (process.env) and Cloudflare Pages Functions (context.env)
  */
 export function readEnv(source: EnvSource, key: string): string | undefined {
-  // If source is provided (Cloudflare context.env), use it
-  if (source && typeof source === 'object') {
-    return source[key];
+  // If source is provided and has the key (Cloudflare context.env), use it
+  if (source && typeof source === 'object' && key in source) {
+    const value = source[key];
+    // Only use it if it's not undefined (empty object check)
+    if (value !== undefined) {
+      return value;
+    }
   }
   // Otherwise, fall back to Next.js process.env
   return process.env[key];
