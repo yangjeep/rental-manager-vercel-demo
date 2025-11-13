@@ -37,13 +37,16 @@ type-safe during CI even though Pages is responsible for the actual bundling ste
 
 ## Runtime Architecture
 
-- `functions/[[path]].ts` — Router that serves `/`, `/properties/:slug`, and `/sitemap.xml`
-  with server-rendered HTML. It applies demo-only Basic Auth (`DEMO_USER`/`DEMO_PASS`)
-  and optionally injects `X-Robots-Tag` when `DEMO_NOINDEX=true`.
+- `functions/[[path]].ts` — Router that serves `/`, `/map`, `/apply`, `/about`,
+  `/properties/:slug`, and `/sitemap.xml` with server-rendered HTML. It applies demo-only
+  Basic Auth (`DEMO_USER`/`DEMO_PASS`) and optionally injects `X-Robots-Tag` when
+  `DEMO_NOINDEX=true`.
 - `lib/fetchListings.ts` — Airtable integration that maps table rows into strongly typed
   listings and reads Cloudflare R2 attachment URLs for imagery.
-- `lib/templates.ts` — Zero-dependency HTML templates for the homepage, filters, cards,
-  and property detail views.
+- `lib/pages/` — Zero-dependency HTML templates split per route (home, map, apply, about,
+  property detail, not-found, sitemap) with a shared layout.
+- `lib/geocode.ts` — Lightweight OpenStreetMap geocoder used to place filtered listings on
+  the interactive map view.
 - `public/styles.css` — Small handcrafted stylesheet (no Tailwind or PostCSS) that keeps
   the UI cohesive when rendered from the edge runtime.
 

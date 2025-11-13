@@ -15,3 +15,8 @@ export type Listing = {
   imageUrl?: string;             // R2-hosted cover image
 };
 
+export type GeocodedListing = Listing & {
+  latitude: number;
+  longitude: number;
+};
+
