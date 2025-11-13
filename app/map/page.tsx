@@ -7,8 +7,6 @@ import type { Listing } from '@/lib/types';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/pages/shared';
 
-export const runtime = 'edge';
-
 interface MapPageProps {
   searchParams: { [key: string]: string | string[] | undefined };
 }

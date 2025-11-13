@@ -12,7 +12,7 @@
     "lighthouse": "lhci autorun",
     "lighthouse:local": "lighthouse http://localhost:3000 --output html --output-path ./lighthouse-report.html --view",
     "lighthouse:baseline": "node scripts/generate-lighthouse-baseline.js",
-    "pages:build": "opennextjs-cloudflare",
+    "pages:build": "opennextjs-cloudflare build",
     "pages:deploy": "npm run pages:build && wrangler pages deploy"
   },
   "dependencies": {
