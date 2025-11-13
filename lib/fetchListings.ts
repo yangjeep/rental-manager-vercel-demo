@@ -62,7 +62,7 @@ async function fetchImagesFromR2Api(slug: string): Promise<string[]> {
 
   try {
     const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
-    console.log(`[R2 API] Endpoint: ${endpoint}`);
+    //console.log(`[R2 API] Endpoint: ${endpoint}`); // Logging full endpoint (with accountId) removed to avoid exposing sensitive data
     
     const s3Client = new S3Client({
       region: 'auto',
