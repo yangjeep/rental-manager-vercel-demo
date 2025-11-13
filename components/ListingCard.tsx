@@ -17,17 +17,17 @@ export default function ListingCard({ listing, onClick, isSelected = false }: Li
       onClick={onClick}
     >
       <div className="relative">
-        <img 
-          src={imageSrc}
-          alt={listing.title} 
+      <img 
+        src={imageSrc}
+        alt={listing.title} 
           className="h-32 w-full object-cover"
-          onError={(e) => {
-            // Fallback to placeholder if image fails to load
-            if ((e.target as HTMLImageElement).src !== "/placeholder.jpg") {
-              (e.target as HTMLImageElement).src = "/placeholder.jpg";
-            }
-          }}
-        />
+        onError={(e) => {
+          // Fallback to placeholder if image fails to load
+          if ((e.target as HTMLImageElement).src !== "/placeholder.jpg") {
+            (e.target as HTMLImageElement).src = "/placeholder.jpg";
+          }
+        }}
+      />
         {/* Overlay Title and Status Badge */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-between p-3">
           <div className="flex justify-end">

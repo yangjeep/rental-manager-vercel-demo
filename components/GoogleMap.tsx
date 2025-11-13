@@ -59,7 +59,7 @@ export default function GoogleMapComponent({ listings, listing, height = "500px"
   }
 
   return (
-    <MapWithMarkers
+    <MapWithMarkers 
       properties={propertiesWithAddresses} 
       height={height}
       isLoaded={isLoaded}
