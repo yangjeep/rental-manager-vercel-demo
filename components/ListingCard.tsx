@@ -9,7 +9,7 @@ export default function ListingCard({ listing }: { listing: Listing }) {
       <img 
         src={imageSrc}
         alt={listing.title} 
-        className="h-48 w-full object-cover"
+        className="h-32 w-full object-cover"
         onError={(e) => {
           // Fallback to placeholder if image fails to load
           if ((e.target as HTMLImageElement).src !== "/placeholder.jpg") {

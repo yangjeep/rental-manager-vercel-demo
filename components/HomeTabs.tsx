@@ -23,26 +23,24 @@ export default function HomeTabs({ filteredListings, allListings }: HomeTabsProp
           <Suspense fallback={<div className="card p-4">Loading filters...</div>}>
             <Filters allListings={allListings || filteredListings} />
           </Suspense>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredListings.map((l: Listing) => (
-              <ListingCard key={l.id} listing={l} />
-            ))}
+          {/* Combined Map and Listings Layout */}
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Map Section - 60% on desktop */}
+            <div className="w-full lg:w-[60%]">
+              <GoogleMap listings={filteredListings} height="600px" />
+            </div>
+            {/* Listings Section - 40% on desktop */}
+            <div className="w-full lg:w-[40%]">
+              <div className="flex flex-col gap-6">
+                {filteredListings.map((l: Listing) => (
+                  <ListingCard key={l.id} listing={l} />
+                ))}
+              </div>
+              {filteredListings.length === 0 && (
+                <div className="opacity-70">No listings match your filters.</div>
+              )}
+            </div>
           </div>
-          {filteredListings.length === 0 && (
-            <div className="opacity-70">No listings match your filters.</div>
-          )}
-        </div>
-      ),
-    },
-    {
-      id: "map",
-      label: "Map",
-      content: (
-        <div className="space-y-6">
-          <Suspense fallback={<div className="card p-4">Loading filters...</div>}>
-            <Filters allListings={allListings || filteredListings} />
-          </Suspense>
-          <GoogleMap listings={filteredListings} height="600px" />
         </div>
       ),
     },
