@@ -1,5 +1,5 @@
 "use client";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import Filters from "@/components/Filters";
 import ListingCard from "@/components/ListingCard";
 import TabbedLayout, { type Tab } from "@/components/TabbedLayout";
@@ -14,108 +14,52 @@ type HomeTabsProps = {
 };
 
 export default function HomeTabs({ filteredListings, allListings }: HomeTabsProps) {
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
   const tabs: Tab[] = [
     {
       id: "overview",
-      label: "Overview",
+      label: "Residential Listings",
       content: (
         <div className="space-y-6">
           <Suspense fallback={<div className="card p-4">Loading filters...</div>}>
             <Filters allListings={allListings || filteredListings} />
           </Suspense>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredListings.map((l: Listing) => (
-              <ListingCard key={l.id} listing={l} />
-            ))}
-          </div>
-          {filteredListings.length === 0 && (
-            <div className="opacity-70">No listings match your filters.</div>
-          )}
-        </div>
-      ),
-    },
-    {
-      id: "map",
-      label: "Map",
-      content: (
-        <div className="space-y-6">
-          <Suspense fallback={<div className="card p-4">Loading filters...</div>}>
-            <Filters allListings={allListings || filteredListings} />
-          </Suspense>
-          <GoogleMap listings={filteredListings} height="600px" />
-        </div>
-      ),
-    },
-    {
-      id: "details",
-      label: "Details",
-      content: (
-        <div className="space-y-6">
-          <Suspense fallback={<div className="card p-4">Loading filters...</div>}>
-            <Filters allListings={allListings || filteredListings} />
-          </Suspense>
-          <div className="card p-6">
-            <h2 className="text-2xl font-semibold mb-4">Property Statistics</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div>
-                <div className="text-3xl font-bold mb-1">{filteredListings.length}</div>
-                <div className="text-sm opacity-70">Total Properties</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold mb-1">
-                  {filteredListings.filter((l) => l.status === "Available").length}
-                </div>
-                <div className="text-sm opacity-70">Available</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold mb-1">
-                  ${filteredListings.length > 0
-                    ? Math.round(
-                        filteredListings.reduce((sum, l) => sum + l.price, 0) /
-                          filteredListings.length
-                      ).toLocaleString()
-                    : "0"}
-                </div>
-                <div className="text-sm opacity-70">Avg. Price</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold mb-1">
-                  {filteredListings.length > 0
-                    ? (
-                        filteredListings.reduce((sum, l) => sum + l.bedrooms, 0) /
-                        filteredListings.length
-                      ).toFixed(1)
-                    : "0"}
-                </div>
-                <div className="text-sm opacity-70">Avg. Bedrooms</div>
-              </div>
+          {/* Combined Map and Listings Layout */}
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Map Section - 70% on desktop */}
+            <div className="w-full lg:w-[70%]">
+              <GoogleMap 
+                listings={filteredListings} 
+                height="600px" 
+                selectedListingId={selectedListingId}
+              />
             </div>
-          </div>
-          {filteredListings.length > 0 && (
-            <div className="card p-6">
-              <h2 className="text-2xl font-semibold mb-4">Property Details</h2>
-              <div className="space-y-4">
-                {filteredListings.map((listing) => (
-                  <div key={listing.id} className="border-b border-white/10 pb-4 last:border-0">
-                    <h3 className="font-semibold mb-2">{listing.title}</h3>
-                    <div className="grid gap-2 sm:grid-cols-2 text-sm opacity-80">
-                      <div>Price: ${listing.price.toLocaleString()} / month</div>
-                      <div>Bedrooms: {listing.bedrooms}</div>
-                      <div>City: {listing.city}</div>
-                      <div>Status: {listing.status}</div>
-                      {listing.address && <div>Address: {listing.address}</div>}
-                    </div>
-                  </div>
+            {/* Listings Section - 30% on desktop */}
+            <div className="w-full lg:w-[30%] lg:max-h-[600px] lg:overflow-y-auto lg:pr-2">
+              <div className="flex flex-col gap-6">
+                {filteredListings.map((l: Listing) => (
+                  <ListingCard 
+                    key={l.id} 
+                    listing={l}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setSelectedListingId(l.id);
+                    }}
+                    isSelected={selectedListingId === l.id}
+                  />
                 ))}
+                {filteredListings.length === 0 && (
+                  <div className="opacity-70">No listings match your filters.</div>
+                )}
               </div>
             </div>
-          )}
+          </div>
         </div>
       ),
     },
     {
-      id: "contact",
-      label: "Contact",
+      id: "apply",
+      label: "Submit an Application",
       content: (
         <div className="space-y-6">
           <ContactForm listingTitle="General Inquiry" />

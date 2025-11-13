@@ -15,6 +15,7 @@ export default function Filters({ allListings }: FiltersProps = {}) {
   const [min, setMin] = useState(sp.get("min") || "");
   const [max, setMax] = useState(sp.get("max") || "");
   const [status, setStatus] = useState(sp.get("status") || "");
+  const [pet, setPet] = useState(sp.get("pet") || "");
 
   // Get available cities from all listings
   const availableCities = useMemo(() => {
@@ -34,26 +35,29 @@ export default function Filters({ allListings }: FiltersProps = {}) {
     setMin(sp.get("min") || "");
     setMax(sp.get("max") || "");
     setStatus(sp.get("status") || "");
+    setPet(sp.get("pet") || "");
   }, [sp]);
 
-  const apply = useCallback(() => {
+  // Apply filters in real-time whenever they change
+  useEffect(() => {
     const p = new URLSearchParams();
     if (city && city !== "All") p.set("city", city);
     if (bedrooms) p.set("bedrooms", bedrooms);
     if (min) p.set("min", min);
     if (max) p.set("max", max);
     if (status) p.set("status", status);
+    if (pet) p.set("pet", pet);
     router.push(`/?${p.toString()}`);
-  }, [router, city, bedrooms, min, max, status]);
+  }, [city, bedrooms, min, max, status, pet, router]);
 
   const reset = useCallback(() => {
-    setCity(""); setBedrooms(""); setMin(""); setMax(""); setStatus("");
+    setCity(""); setBedrooms(""); setMin(""); setMax(""); setStatus(""); setPet("");
     router.push(`/`);
   }, [router]);
 
   return (
     <section className="card p-4">
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
         <div>
           <div className="label mb-1">City</div>
           {availableCities.length > 0 ? (
@@ -70,8 +74,15 @@ export default function Filters({ allListings }: FiltersProps = {}) {
           )}
         </div>
         <div>
-          <div className="label mb-1">Bedrooms ≥</div>
-          <input className="input w-full" value={bedrooms} onChange={e => setBedrooms(e.target.value)} inputMode="numeric" placeholder="2" />
+          <div className="label mb-1">Bedrooms</div>
+          <select className="input w-full" value={bedrooms} onChange={e => setBedrooms(e.target.value)}>
+            <option value="">Any</option>
+            <option value="1">1+</option>
+            <option value="2">2+</option>
+            <option value="3">3+</option>
+            <option value="4">4+</option>
+            <option value="5">5+</option>
+          </select>
         </div>
         <div>
           <div className="label mb-1">Min $</div>
@@ -90,9 +101,17 @@ export default function Filters({ allListings }: FiltersProps = {}) {
             <option value="Rented">Rented</option>
           </select>
         </div>
-        <div className="flex items-end gap-2">
-          <button className="btn" onClick={apply}>Apply</button>
-          <button className="btn" onClick={reset}>Reset</button>
+        <div>
+          <div className="label mb-1">Pet</div>
+          <select className="input w-full" value={pet} onChange={e => setPet(e.target.value)}>
+            <option value="">Any</option>
+            <option value="Allowed">Allowed</option>
+            <option value="Conditional">Conditional</option>
+            <option value="Not Allowed">Not Allowed</option>
+          </select>
+        </div>
+        <div className="flex items-end">
+          <button className="btn w-full" onClick={reset}>Reset</button>
         </div>
       </div>
     </section>

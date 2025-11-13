@@ -8,11 +8,12 @@ type GoogleMapProps = {
   listings?: Listing[];
   listing?: Listing;
   height?: string;
+  selectedListingId?: string | null;
 };
 
 const libraries: ("places" | "drawing" | "geometry" | "visualization")[] = ["places"];
 
-export default function GoogleMapComponent({ listings, listing, height = "500px" }: GoogleMapProps) {
+export default function GoogleMapComponent({ listings, listing, height = "500px", selectedListingId }: GoogleMapProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
   
   // Determine which listings to show
@@ -62,6 +63,7 @@ export default function GoogleMapComponent({ listings, listing, height = "500px"
       properties={propertiesWithAddresses} 
       height={height}
       isLoaded={isLoaded}
+      selectedListingId={selectedListingId}
     />
   );
 }
@@ -106,10 +108,11 @@ function EmbedMapFallback({ properties, height }: { properties: Listing[]; heigh
 }
 
 // Map with markers using JavaScript API
-function MapWithMarkers({ properties, height, isLoaded }: { properties: Listing[]; height: string; isLoaded: boolean }) {
+function MapWithMarkers({ properties, height, isLoaded, selectedListingId }: { properties: Listing[]; height: string; isLoaded: boolean; selectedListingId?: string | null }) {
   const [selectedMarker, setSelectedMarker] = useState<number | null>(null);
   const [markers, setMarkers] = useState<Array<{ listing: Listing; position: { lat: number; lng: number } }>>([]);
   const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
 
   useEffect(() => {
     if (isLoaded && !geocoder) {
@@ -181,6 +184,7 @@ function MapWithMarkers({ properties, height, isLoaded }: { properties: Listing[
   const defaultZoom = useMemo(() => (markers.length === 1 ? 15 : 12), [markers.length]);
 
   const onLoad = useCallback((map: google.maps.Map) => {
+    setMap(map);
     if (markers.length > 1) {
       const bounds = new google.maps.LatLngBounds();
       markers.forEach((marker) => {
@@ -189,6 +193,22 @@ function MapWithMarkers({ properties, height, isLoaded }: { properties: Listing[
       map.fitBounds(bounds);
     }
   }, [markers]);
+
+  // Handle selectedListingId changes to open InfoWindow and pan to marker
+  useEffect(() => {
+    if (!selectedListingId || markers.length === 0 || !map) return;
+    
+    const markerIndex = markers.findIndex(m => m.listing.id === selectedListingId);
+    if (markerIndex !== -1) {
+      setSelectedMarker(markerIndex);
+      // Pan to the selected marker
+      map.panTo(markers[markerIndex].position);
+      // Optionally zoom in a bit
+      if (map.getZoom() && map.getZoom()! < 14) {
+        map.setZoom(14);
+      }
+    }
+  }, [selectedListingId, markers, map]);
 
   if (markers.length === 0) {
     return (
@@ -219,7 +239,12 @@ function MapWithMarkers({ properties, height, isLoaded }: { properties: Listing[
           >
             {selectedMarker === index && (
               <InfoWindow onCloseClick={() => setSelectedMarker(null)}>
-                <div className="text-black p-2">
+                <div className="text-black">
+                  <img 
+                    src={(marker.listing.images && marker.listing.images[0]) || marker.listing.imageUrl || "/placeholder.jpg"}
+                    alt={marker.listing.title}
+                    className="w-full h-20 object-cover rounded mb-2"
+                  />
                   <h3 className="font-semibold text-sm mb-1">
                     <Link 
                       href={`/properties/${marker.listing.slug}`}

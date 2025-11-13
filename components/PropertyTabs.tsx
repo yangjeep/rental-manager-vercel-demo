@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import ContactForm from "@/components/ContactForm";
 import ListingGallery from "@/components/ListingGallery";
 import TabbedLayout, { type Tab } from "@/components/TabbedLayout";
@@ -11,6 +12,7 @@ type PropertyTabsProps = {
 };
 
 export default function PropertyTabs({ listing }: PropertyTabsProps) {
+  const [activeTab, setActiveTab] = useState("overview");
   const gallery = listing.images && listing.images.length ? listing.images : [listing.imageUrl || "/placeholder.jpg"];
 
   const tabs: Tab[] = [
@@ -25,6 +27,12 @@ export default function PropertyTabs({ listing }: PropertyTabsProps) {
             {fmtPrice(listing.price)} / month · {listing.bedrooms} BR · {listing.city}
           </div>
           <div className="opacity-90 whitespace-pre-line">{listing.description}</div>
+          <button
+            onClick={() => setActiveTab("apply")}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+          >
+            Apply Now
+          </button>
         </article>
       ),
     },
@@ -39,26 +47,8 @@ export default function PropertyTabs({ listing }: PropertyTabsProps) {
       ),
     },
     {
-      id: "details",
-      label: "Details",
-      content: (
-        <div className="space-y-6">
-          <h2 className="text-2xl font-semibold">{listing.title}</h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <Info label="Status" value={listing.status} />
-            <Info label="Parking" value={fmtParking(listing.parking)} />
-            <Info label="Pets" value={listing.pets || "—"} />
-            <Info label="Address" value={listing.address || "—"} />
-            <Info label="Price" value={fmtPrice(listing.price)} />
-            <Info label="Bedrooms" value={String(listing.bedrooms)} />
-            <Info label="City" value={listing.city} />
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: "contact",
-      label: "Contact",
+      id: "apply",
+      label: "Submit an Application",
       content: (
         <div className="space-y-6">
           <ContactForm listingTitle={listing.title} />
@@ -72,24 +62,10 @@ export default function PropertyTabs({ listing }: PropertyTabsProps) {
     },
   ];
 
-  return <TabbedLayout tabs={tabs} defaultTab="overview" />;
-}
-
-function Info({ label, value }: { label: string; value?: string }) {
-  return (
-    <div className="card p-4">
-      <div className="label mb-1">{label}</div>
-      <div>{value || "—"}</div>
-    </div>
-  );
+  return <TabbedLayout tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />;
 }
 
 function fmtPrice(n: number) {
   return `$${(n || 0).toLocaleString()}`;
-}
-
-function fmtParking(v: string | undefined): string {
-  if (v && v.trim()) return v.trim();
-  return "—";
 }
 

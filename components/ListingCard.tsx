@@ -1,15 +1,26 @@
 import Link from "next/link";
 import type { Listing } from "@/lib/types";
 
-export default function ListingCard({ listing }: { listing: Listing }) {
+type ListingCardProps = {
+  listing: Listing;
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  isSelected?: boolean;
+};
+
+export default function ListingCard({ listing, onClick, isSelected = false }: ListingCardProps) {
   const imageSrc = (listing.images && listing.images[0]) || listing.imageUrl || "/placeholder.jpg";
   
   return (
-    <Link href={`/properties/${listing.slug}`} className="card overflow-hidden hover:border-white/30">
+    <Link 
+      href={`/properties/${listing.slug}`} 
+      className={`card overflow-hidden hover:border-white/30 transition-all ${isSelected ? 'ring-2 ring-blue-500 border-blue-500' : ''}`}
+      onClick={onClick}
+    >
+      <div className="relative">
       <img 
         src={imageSrc}
         alt={listing.title} 
-        className="h-48 w-full object-cover"
+          className="h-32 w-full object-cover"
         onError={(e) => {
           // Fallback to placeholder if image fails to load
           if ((e.target as HTMLImageElement).src !== "/placeholder.jpg") {
@@ -17,11 +28,17 @@ export default function ListingCard({ listing }: { listing: Listing }) {
           }
         }}
       />
-      <div className="p-4 space-y-2">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">{listing.title}</h3>
-          <span className="text-xs rounded-full border px-2 py-0.5 opacity-80">{listing.status}</span>
+        {/* Overlay Title and Status Badge */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-between p-3">
+          <div className="flex justify-end">
+            <span className={`text-xs rounded-full px-2 py-1 font-medium ${getStatusColor(listing.status)}`}>
+              {listing.status}
+            </span>
+          </div>
+          <h3 className="text-lg font-semibold text-white drop-shadow-lg">{listing.title}</h3>
         </div>
+      </div>
+      <div className="p-4 space-y-2">
         <div className="opacity-80">${listing.price} / mo · {listing.bedrooms} BR · {listing.city}</div>
         <div className="flex gap-2 text-xs opacity-80">
           <Badge label={fmtParkingShort(listing.parking)} />
@@ -49,4 +66,18 @@ function fmtPetsShort(v: any): string | undefined {
   if (s.startsWith("not")) return "No Pets";
   if (s.startsWith("cond")) return "Pets Cond.";
   return String(v);
+}
+
+function getStatusColor(status: string): string {
+  const s = status.toLowerCase();
+  if (s.includes("available") || s.includes("active")) {
+    return "bg-green-500 text-white";
+  }
+  if (s.includes("pending") || s.includes("hold")) {
+    return "bg-yellow-500 text-black";
+  }
+  if (s.includes("rented") || s.includes("unavailable") || s.includes("inactive")) {
+    return "bg-red-500 text-white";
+  }
+  return "bg-gray-500 text-white";
 }
