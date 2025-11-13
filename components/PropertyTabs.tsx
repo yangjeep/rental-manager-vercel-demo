@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import ContactForm from "@/components/ContactForm";
 import ListingGallery from "@/components/ListingGallery";
 import TabbedLayout, { type Tab } from "@/components/TabbedLayout";
@@ -11,6 +12,7 @@ type PropertyTabsProps = {
 };
 
 export default function PropertyTabs({ listing }: PropertyTabsProps) {
+  const [activeTab, setActiveTab] = useState("overview");
   const gallery = listing.images && listing.images.length ? listing.images : [listing.imageUrl || "/placeholder.jpg"];
 
   const tabs: Tab[] = [
@@ -25,6 +27,12 @@ export default function PropertyTabs({ listing }: PropertyTabsProps) {
             {fmtPrice(listing.price)} / month · {listing.bedrooms} BR · {listing.city}
           </div>
           <div className="opacity-90 whitespace-pre-line">{listing.description}</div>
+          <button
+            onClick={() => setActiveTab("apply")}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+          >
+            Apply Now
+          </button>
         </article>
       ),
     },
@@ -54,7 +62,7 @@ export default function PropertyTabs({ listing }: PropertyTabsProps) {
     },
   ];
 
-  return <TabbedLayout tabs={tabs} defaultTab="overview" />;
+  return <TabbedLayout tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />;
 }
 
 function fmtPrice(n: number) {

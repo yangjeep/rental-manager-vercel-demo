@@ -1,11 +1,21 @@
 import Link from "next/link";
 import type { Listing } from "@/lib/types";
 
-export default function ListingCard({ listing }: { listing: Listing }) {
+type ListingCardProps = {
+  listing: Listing;
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  isSelected?: boolean;
+};
+
+export default function ListingCard({ listing, onClick, isSelected = false }: ListingCardProps) {
   const imageSrc = (listing.images && listing.images[0]) || listing.imageUrl || "/placeholder.jpg";
   
   return (
-    <Link href={`/properties/${listing.slug}`} className="card overflow-hidden hover:border-white/30">
+    <Link 
+      href={`/properties/${listing.slug}`} 
+      className={`card overflow-hidden hover:border-white/30 transition-all ${isSelected ? 'ring-2 ring-blue-500 border-blue-500' : ''}`}
+      onClick={onClick}
+    >
       <div className="relative">
         <img 
           src={imageSrc}
@@ -21,7 +31,9 @@ export default function ListingCard({ listing }: { listing: Listing }) {
         {/* Overlay Title and Status Badge */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-between p-3">
           <div className="flex justify-end">
-            <span className="text-xs rounded-full bg-white/90 text-black px-2 py-1 font-medium">{listing.status}</span>
+            <span className={`text-xs rounded-full px-2 py-1 font-medium ${getStatusColor(listing.status)}`}>
+              {listing.status}
+            </span>
           </div>
           <h3 className="text-lg font-semibold text-white drop-shadow-lg">{listing.title}</h3>
         </div>
@@ -54,4 +66,18 @@ function fmtPetsShort(v: any): string | undefined {
   if (s.startsWith("not")) return "No Pets";
   if (s.startsWith("cond")) return "Pets Cond.";
   return String(v);
+}
+
+function getStatusColor(status: string): string {
+  const s = status.toLowerCase();
+  if (s.includes("available") || s.includes("active")) {
+    return "bg-green-500 text-white";
+  }
+  if (s.includes("pending") || s.includes("hold")) {
+    return "bg-yellow-500 text-black";
+  }
+  if (s.includes("rented") || s.includes("unavailable") || s.includes("inactive")) {
+    return "bg-red-500 text-white";
+  }
+  return "bg-gray-500 text-white";
 }

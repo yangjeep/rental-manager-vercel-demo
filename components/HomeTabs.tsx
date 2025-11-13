@@ -1,5 +1,5 @@
 "use client";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import Filters from "@/components/Filters";
 import ListingCard from "@/components/ListingCard";
 import TabbedLayout, { type Tab } from "@/components/TabbedLayout";
@@ -14,6 +14,7 @@ type HomeTabsProps = {
 };
 
 export default function HomeTabs({ filteredListings, allListings }: HomeTabsProps) {
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
   const tabs: Tab[] = [
     {
       id: "overview",
@@ -27,19 +28,31 @@ export default function HomeTabs({ filteredListings, allListings }: HomeTabsProp
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Map Section - 70% on desktop */}
             <div className="w-full lg:w-[70%]">
-              <GoogleMap listings={filteredListings} height="600px" />
+              <GoogleMap 
+                listings={filteredListings} 
+                height="600px" 
+                selectedListingId={selectedListingId}
+              />
             </div>
             {/* Listings Section - 30% on desktop */}
             <div className="w-full lg:w-[30%]">
               <div className="flex flex-col gap-6">
                 {filteredListings.map((l: Listing) => (
-                  <ListingCard key={l.id} listing={l} />
+                  <ListingCard 
+                    key={l.id} 
+                    listing={l}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setSelectedListingId(l.id);
+                    }}
+                    isSelected={selectedListingId === l.id}
+                  />
                 ))}
               </div>
-              {filteredListings.length === 0 && (
-                <div className="opacity-70">No listings match your filters.</div>
-              )}
-            </div>
+          {filteredListings.length === 0 && (
+            <div className="opacity-70">No listings match your filters.</div>
+          )}
+        </div>
           </div>
         </div>
       ),
