@@ -7,6 +7,7 @@
     "build": "npx tsc --noEmit",
     "lint": "npx tsc --noEmit",
     "typecheck": "npx tsc --noEmit",
+    "watch": "npx tsc --noEmit --watch",
     "lighthouse": "lhci autorun",
     "lighthouse:local": "lighthouse http://localhost:3000 --output html --output-path ./lighthouse-report.html --view",
     "lighthouse:baseline": "node scripts/generate-lighthouse-baseline.js"

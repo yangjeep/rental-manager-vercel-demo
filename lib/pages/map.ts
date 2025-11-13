@@ -97,13 +97,13 @@ export function renderMapPage({ filteredListings, allListings, filters, googleMa
             if (status === "OK" && results[0]) {
               var location = results[0].geometry.location;
               var popupContent = [
-                "<div style='padding: 0.5rem; min-width: 200px;'>",
-                "<strong>" + htmlEscape(listing.title) + "</strong><br>",
+                "<div style='padding: 0.75rem; min-width: 200px; background: white; color: black;'>",
+                "<strong style='color: black;'>" + htmlEscape(listing.title) + "</strong><br>",
               ];
-              if (listing.address) popupContent.push(htmlEscape(listing.address) + "<br>");
-              if (listing.city) popupContent.push(htmlEscape(listing.city) + "<br>");
-              if (listing.price) popupContent.push("<em>" + currency.format(listing.price) + "</em><br>");
-              popupContent.push("<a href='/properties/" + encodeURIComponent(listing.slug) + "'>View listing</a>");
+              if (listing.address) popupContent.push("<span style='color: black;'>" + htmlEscape(listing.address) + "</span><br>");
+              if (listing.city) popupContent.push("<span style='color: black;'>" + htmlEscape(listing.city) + "</span><br>");
+              if (listing.price) popupContent.push("<em style='color: black;'>" + currency.format(listing.price) + "</em><br>");
+              popupContent.push("<a href='/properties/" + encodeURIComponent(listing.slug) + "' style='color: #0066cc; text-decoration: underline;'>View listing</a>");
               popupContent.push("</div>");
               
               var marker = new google.maps.Marker({
