@@ -50,4 +50,7 @@ jobs:
           DEMO_NOINDEX: 'true'
           NODE_ENV: 'production'
           CI: 'true'
+      
+      - name: Build Cloudflare worker with OpenNext
+        run: npm run pages:build
 
