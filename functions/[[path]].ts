@@ -1,7 +1,6 @@
 import { requireBasicAuth } from "../lib/auth";
-import { envFlag } from "../lib/env";
+import { envFlag, readEnv } from "../lib/env";
 import { fetchListings } from "../lib/fetchListings";
-import { geocodeListings } from "../lib/geocode";
 import {
   renderAboutPage,
   renderApplicationPage,
@@ -62,12 +61,11 @@ export const onRequestGet: PagesFunction<Record<string, string>> = async context
 
   if (pathname === "/map") {
     const filtered = applyFilters(listings, url.searchParams);
-    const markers = await geocodeListings(filtered);
     const body = renderMapPage({
       filteredListings: filtered,
       allListings: listings,
       filters,
-      markers,
+      googleMapsApiKey: readEnv(context.env, "GOOGLE_MAPS_API_KEY"),
       activePath: "/map",
     });
     return htmlResponse(body, 200, noIndex, { "cache-control": "public, max-age=120" });

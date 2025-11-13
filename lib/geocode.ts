@@ -1,7 +1,8 @@
 import type { Listing, GeocodedListing } from "./types";
 
 const NOMINATIM_ENDPOINT = "https://nominatim.openstreetmap.org/search";
-const REQUEST_DELAY_MS = 250;
+const REQUEST_DELAY_MS = 1100;
+const memoryCache = new Map<string, { lat: number; lon: number }>();
 
 function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -9,15 +10,13 @@ function sleep(ms: number) {
 
 export async function geocodeListings(listings: Listing[]): Promise<GeocodedListing[]> {
   const results: GeocodedListing[] = [];
-  const cache = new Map<string, { lat: number; lon: number }>();
-
   for (const listing of listings) {
     const queryParts = [listing.address, listing.city].filter(Boolean);
     if (queryParts.length === 0) continue;
     const query = queryParts.join(", ");
     if (!query.trim()) continue;
 
-    let coords = cache.get(query);
+    let coords = memoryCache.get(query);
     if (!coords) {
       const url = `${NOMINATIM_ENDPOINT}?format=json&limit=1&q=${encodeURIComponent(query)}`;
       try {
@@ -32,7 +31,7 @@ export async function geocodeListings(listings: Listing[]): Promise<GeocodedList
           const first = Array.isArray(data) ? data[0] : undefined;
           if (first && first.lat && first.lon) {
             coords = { lat: Number(first.lat), lon: Number(first.lon) };
-            cache.set(query, coords);
+            memoryCache.set(query, coords);
           }
         }
       } catch (error) {

@@ -1,27 +1,26 @@
-import type { Listing, GeocodedListing } from "../types";
+import type { Listing } from "../types";
 import { renderLayout } from "./layout";
-import { SITE_TITLE, escapeAttribute, escapeHtml, formatPrice, renderFilters, serializeForScript } from "./shared";
+import { SITE_TITLE, escapeHtml, escapeAttribute, formatPrice, renderFilters, serializeForScript } from "./shared";
 
 type MapPageOptions = {
   filteredListings: Listing[];
   allListings: Listing[];
   filters: Record<string, string>;
-  markers: GeocodedListing[];
+  googleMapsApiKey?: string;
   activePath?: string;
 };
 
-export function renderMapPage({ filteredListings, allListings, filters, markers, activePath = "/map" }: MapPageOptions): string {
-  const markerPayload = markers.map(marker => ({
-    title: marker.title,
-    slug: marker.slug,
-    latitude: marker.latitude,
-    longitude: marker.longitude,
-    price: marker.price,
-    address: marker.address,
-    city: marker.city,
-    status: marker.status,
+export function renderMapPage({ filteredListings, allListings, filters, googleMapsApiKey, activePath = "/map" }: MapPageOptions): string {
+  const listingsData = filteredListings.map(listing => ({
+    title: listing.title,
+    slug: listing.slug,
+    price: listing.price,
+    address: listing.address || "",
+    city: listing.city || "",
+    status: listing.status,
+    query: listing.address ? `${listing.address}, ${listing.city}` : listing.city || listing.title,
   }));
-  const mapDataScript = `<script type="application/json" id="map-data">${serializeForScript(markerPayload)}</script>`;
+  const mapDataScript = `<script type="application/json" id="map-data">${serializeForScript(listingsData)}</script>`;
   const filterControls = renderFilters(allListings, filters, { resetHref: "/map" });
   const listItems = filteredListings.map(listing => {
     const label = listing.address ? `${listing.address}, ${listing.city}` : listing.city || "Location coming soon";
@@ -56,33 +55,34 @@ export function renderMapPage({ filteredListings, allListings, filters, markers,
     ${mapDataScript}
   `;
 
-  const extraHead = `
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha512-sA+e2EN0CdmMGcVxXbkqIDgf/mBlC9ZwTe74MkRUYw35vj50IadB1iKsFcfoTmya4A1NVZ4Zs46aPjSkN3jtWQ=="
-      crossorigin=""
-    />
-  `;
-
+  const apiKey = googleMapsApiKey || "YOUR_API_KEY";
   const extraScripts = `
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha512-lInM/ap+5DyoM7g1P53EtJtRRo3qQnsaT5vZebPnnwQOVx0VIykFZ6VwBZE0X0FQIV0Fp1ZpOEdl6glpLH0w2Q==" crossorigin=""></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=${escapeAttribute(apiKey)}&callback=initMap" async defer></script>
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
+      function initMap() {
         var container = document.getElementById("map");
         var dataEl = document.getElementById("map-data");
         if (!container || !dataEl) return;
-        var markers = [];
+        
+        var listings = [];
         try {
-          markers = JSON.parse(dataEl.textContent || "[]");
+          listings = JSON.parse(dataEl.textContent || "[]");
         } catch (error) {
-          console.error("Failed to parse map markers", error);
+          console.error("Failed to parse map data", error);
         }
-        var map = L.map(container, { scrollWheelZoom: false });
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: "&copy; OpenStreetMap contributors"
-        }).addTo(map);
+        
+        var map = new google.maps.Map(container, {
+          zoom: 4,
+          center: { lat: 39.5, lng: -98.35 },
+          mapTypeControl: true,
+          streetViewControl: false,
+        });
+        
+        var geocoder = new google.maps.Geocoder();
+        var bounds = new google.maps.LatLngBounds();
+        var markers = [];
         var currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+        
         function htmlEscape(value) {
           return String(value || "")
             .replace(/&/g, "&amp;")
@@ -91,35 +91,53 @@ export function renderMapPage({ filteredListings, allListings, filters, markers,
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
         }
-        if (markers.length) {
-          var bounds = L.latLngBounds();
-          markers.forEach(function (marker) {
-            var point = L.latLng(marker.latitude, marker.longitude);
-            var popupLines = [
-              "<strong>" + htmlEscape(marker.title) + "</strong>",
-            ];
-            if (marker.address) popupLines.push(htmlEscape(marker.address));
-            if (marker.city) popupLines.push(htmlEscape(marker.city));
-            if (marker.price) popupLines.push("<em>" + currency.format(marker.price) + "</em>");
-            var listingUrl = "/properties/" + encodeURIComponent(marker.slug);
-            popupLines.push('<a href="' + listingUrl + '">View listing</a>');
-            L.marker(point)
-              .addTo(map)
-              .bindPopup(popupLines.join("<br />"));
-            bounds.extend(point);
+        
+        function createMarker(listing) {
+          geocoder.geocode({ address: listing.query }, function(results, status) {
+            if (status === "OK" && results[0]) {
+              var location = results[0].geometry.location;
+              var popupContent = [
+                "<div style='padding: 0.5rem; min-width: 200px;'>",
+                "<strong>" + htmlEscape(listing.title) + "</strong><br>",
+              ];
+              if (listing.address) popupContent.push(htmlEscape(listing.address) + "<br>");
+              if (listing.city) popupContent.push(htmlEscape(listing.city) + "<br>");
+              if (listing.price) popupContent.push("<em>" + currency.format(listing.price) + "</em><br>");
+              popupContent.push("<a href='/properties/" + encodeURIComponent(listing.slug) + "'>View listing</a>");
+              popupContent.push("</div>");
+              
+              var marker = new google.maps.Marker({
+                position: location,
+                map: map,
+                title: listing.title,
+              });
+              
+              var infoWindow = new google.maps.InfoWindow({
+                content: popupContent.join(""),
+              });
+              
+              marker.addListener("click", function() {
+                infoWindow.open(map, marker);
+              });
+              
+              markers.push(marker);
+              bounds.extend(location);
+              
+              if (markers.length === listings.length) {
+                map.fitBounds(bounds);
+              }
+            }
           });
-          map.fitBounds(bounds, { padding: [24, 24] });
-        } else {
-          map.setView([39.5, -98.35], 4);
         }
-      });
+        
+        listings.forEach(createMarker);
+      }
     </script>
   `;
 
   return renderLayout({
     title: `Map · ${SITE_TITLE}`,
     body,
-    extraHead,
     extraScripts,
     activePath,
   });
