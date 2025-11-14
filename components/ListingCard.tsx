@@ -1,28 +1,36 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Listing } from "@/lib/types";
 
 type ListingCardProps = {
   listing: Listing;
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
   isSelected?: boolean;
+  queryString?: string;
 };
 
-export default function ListingCard({ listing, onClick, isSelected = false }: ListingCardProps) {
+export default function ListingCard({ listing, onClick, isSelected = false, queryString }: ListingCardProps) {
   const imageSrc = (listing.images && listing.images[0]) || listing.imageUrl || "/placeholder1.jpg";
+  const isLocalImage = imageSrc?.startsWith('/');
+  const href = queryString ? `/properties/${listing.slug}?${queryString}` : `/properties/${listing.slug}`;
   
   return (
     <Link 
-      href={`/properties/${listing.slug}`} 
+      href={href}
       className={`card overflow-hidden hover:border-white/30 transition-all ${isSelected ? 'ring-2 ring-blue-500 border-blue-500' : ''}`}
       onClick={onClick}
     >
       <div className="relative">
-      <img 
+      <Image 
         src={imageSrc}
         alt={listing.title} 
-          className="h-32 w-full object-cover"
+        width={400}
+        height={128}
+        className="h-32 w-full object-cover"
+        unoptimized={isLocalImage}
         onError={(e) => {
           // Fallback to placeholder if image fails to load
+          console.error(`Failed to load image: ${imageSrc}`);
           if ((e.target as HTMLImageElement).src !== "/placeholder1.jpg") {
             (e.target as HTMLImageElement).src = "/placeholder1.jpg";
           }

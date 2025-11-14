@@ -1,5 +1,6 @@
 // lib/fetchListings.airtable.ts
 import type { Listing } from "./types";
+import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
 
 // ---------- helpers ----------
 function slugify(s: string) {
@@ -26,6 +27,115 @@ function parseDriveFolderId(input?: string | null): string | undefined {
   // 直接给了 id
   if (/^[A-Za-z0-9_\-]{10,}$/.test(s)) return s;
   return undefined;
+}
+
+
+/**
+ * Fetch images from R2 bucket using S3 API (with credentials)
+ * Lists all objects in {slug}/ folder
+ */
+async function fetchImagesFromR2Api(slug: string): Promise<string[]> {
+  console.log(`[R2 API] Starting fetch for slug: ${slug}`);
+  
+  const accountId = process.env.R2_ACCOUNT_ID;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+  const bucketName = process.env.R2_BUCKET_NAME || 'rental-manager-images';
+  const publicUrl = process.env.R2_PUBLIC_URL;
+
+  console.log(`[R2 API] Account ID: ${accountId ? '✅ Set' : '❌ Not set'}`);
+  console.log(`[R2 API] Access Key ID: ${accessKeyId ? '✅ Set' : '❌ Not set'}`);
+  console.log(`[R2 API] Secret Key: ${secretAccessKey ? '✅ Set' : '❌ Not set'}`);
+  console.log(`[R2 API] Bucket Name: ${bucketName}`);
+  console.log(`[R2 API] Public URL: ${publicUrl || '❌ Not set'}`);
+
+  if (!accountId || !accessKeyId || !secretAccessKey) {
+    console.log(`[R2 API] ⚠️ Missing S3 credentials (account ID, access key, secret key)`);
+    return [];
+  }
+
+  if (!publicUrl) {
+    console.log(`[R2 API] ⚠️ Missing R2_PUBLIC_URL - cannot construct image URLs`);
+    console.log(`[R2 API] Note: R2_PUBLIC_URL is required to generate accessible image URLs`);
+    return [];
+  }
+
+  try {
+    const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
+    //console.log(`[R2 API] Endpoint: ${endpoint}`); // Logging full endpoint (with accountId) removed to avoid exposing sensitive data
+    
+    const s3Client = new S3Client({
+      region: 'auto',
+      endpoint,
+      credentials: {
+        accessKeyId,
+        secretAccessKey,
+      },
+    });
+
+    const prefix = `${slug}/`;
+    console.log(`[R2 API] Listing objects with prefix: ${prefix}`);
+
+    const command = new ListObjectsV2Command({
+      Bucket: bucketName,
+      Prefix: prefix,
+    });
+
+    const response = await s3Client.send(command);
+
+    console.log(`[R2 API] Response received. Objects found: ${response.Contents?.length || 0}`);
+
+    if (!response.Contents || response.Contents.length === 0) {
+      console.log(`[R2 API] ⚠️ No objects found in bucket`);
+      return [];
+    }
+
+    // Filter for image files and sort alphanumerically by filename
+    const images = response.Contents
+      .filter(obj => obj.Key && /\.(jpg|jpeg|png|webp|gif|bmp)$/i.test(obj.Key))
+      .sort((a, b) => {
+        // Sort alphanumerically by the full key
+        const keyA = (a.Key || '').toLowerCase();
+        const keyB = (b.Key || '').toLowerCase();
+        return keyA.localeCompare(keyB, undefined, { numeric: true, sensitivity: 'base' });
+      })
+      .map(obj => {
+        const fullUrl = `${publicUrl}/${obj.Key}`;
+        console.log(`[R2 API] 🔗 Constructing URL: ${obj.Key} -> ${fullUrl}`);
+        return fullUrl;
+      });
+
+    console.log(`[R2 API] ✅ Images after filtering and sorting (alphanumeric):`);
+    images.forEach((img, idx) => console.log(`  ${idx + 1}. ${img}`));
+
+    return images;
+  } catch (error) {
+    console.error('[R2 API] ❌ Error fetching from R2 API:', error);
+    if (error instanceof Error) {
+      console.error('[R2 API] Error message:', error.message);
+      console.error('[R2 API] Error stack:', error.stack);
+    }
+    return [];
+  }
+}
+
+/**
+ * Fetch images from R2 - uses S3 API to list all images in folder and sorts alphanumerically
+ */
+async function fetchImagesFromR2(slug: string): Promise<string[]> {
+  console.log(`\n=== [R2] Fetching images for property: ${slug} ===`);
+  console.log(`[R2] Using S3 API to list all images in folder, sorted alphanumerically`);
+  
+  const images = await fetchImagesFromR2Api(slug);
+  
+  if (images.length > 0) {
+    console.log(`[R2] ✅ Success! Found ${images.length} images`);
+  } else {
+    console.log(`[R2] ⚠️ No images found`);
+  }
+  
+  console.log(`=== [R2] Complete ===\n`);
+  return images;
 }
 
 // ---------- airtable fetch ----------
@@ -108,54 +218,43 @@ export async function fetchListings(): Promise<Listing[]> {
     };
   });
 
-  // 若你提供了"通过 folderId 列出图片"的端点，则顺序拉取图片列表
-  const listEndpoint = process.env.DRIVE_LIST_ENDPOINT;
-  if (!listEndpoint) {
-    // 没有端点：直接返回（前端可用 imageFolderUrl 做"查看相册"跳转）
-    return baseItems;
-  }
-
-  // 顺序拉取图片列表（缓存 1 小时）
+  // Image resolution: Try R2, then fallback to placeholders
   for (const item of baseItems) {
-    const folderId = parseDriveFolderId(item.imageFolderUrl);
-    if (!folderId) {
-      continue;
-    }
-    try {
-      const u = new URL(listEndpoint);
-      u.searchParams.set("folder", folderId);
-      const endpointUrl = u.toString();
-      // Cache image URLs for 1 hour (images don't change often)
-      const r = await fetch(endpointUrl, { 
-        next: { revalidate: 3600 } // Cache for 1 hour
-      });
-      if (r.ok) {
-        const data = await r.json();
-        // Handle both array response and error object response
-        if (Array.isArray(data) && data.length > 0) {
-          // Use direct URLs (no proxy needed)
-          item.images = data;
-          item.imageUrl = data[0];
-        }
-        // Silently ignore errors - images will fall back to placeholder
+    console.log(`\n🔍 [Image Resolution] Property: ${item.title} (${item.slug})`);
+
+    // Try R2 bucket (uses public URL or API credentials)
+    if (item.slug) {
+      console.log(`[Image Resolution] Trying R2...`);
+      const r2Images = await fetchImagesFromR2(item.slug);
+      if (r2Images.length > 0) {
+        console.log(`[Image Resolution] ✅ R2 success! Found ${r2Images.length} images`);
+        item.images = r2Images;
+        item.imageUrl = r2Images[0];
+      } else {
+        console.log(`[Image Resolution] ⚠️ R2 returned no images - will use placeholders`);
       }
-    } catch (error) {
-      // Silently ignore errors - images will fall back to placeholder
     }
+
+    console.log(`[Image Resolution] ================================\n`);
   }
   
-  // 确保所有 items 都有 imageUrl 和 demo images，如果没有则使用 placeholders
+  // Ensure all items have imageUrl and images, use placeholders as fallback
+  console.log(`\n📝 [Placeholder Fallback] Applying placeholders where needed...`);
   for (let i = 0; i < baseItems.length; i++) {
     const item = baseItems[i];
     if (!item.imageUrl || item.imageUrl.trim() === "") {
       // Alternate between placeholder images for demo purposes
       item.imageUrl = i % 2 === 0 ? "/placeholder1.jpg" : "/placeholder2.jpg";
+      console.log(`[Placeholder Fallback] ${item.slug}: Using placeholder for imageUrl`);
     }
     // If no images array, provide both placeholders for gallery demo
     if (!item.images || item.images.length === 0) {
       item.images = ["/placeholder1.jpg", "/placeholder2.jpg"];
+      console.log(`[Placeholder Fallback] ${item.slug}: Using placeholders for images array`);
     }
   }
+  console.log(`[Placeholder Fallback] Complete!\n`);
+
 
   return baseItems;
 }
