@@ -14,10 +14,10 @@ Cloudflare Worker that bulk syncs images from Google Drive to R2 bucket for all 
 
 Before deploying the worker, ensure you have:
 
-1. **Cloudflare R2 Buckets** created and configured (see `../R2_SETUP.md`)
+1. **Cloudflare R2 Buckets** created and configured (see `../docs/R2_SETUP.md`)
    - Production: `rental-manager-images`
    - Demo: `rental-manager-demo-images`
-2. **Google Drive API Key** (see `../GOOGLE_DRIVE_SETUP.md`)
+2. **Google Drive API Key** (see `../docs/GOOGLE_DRIVE_SETUP.md`)
    - The Drive folders must be set to "Anyone with the link can view"
 3. **Airtable Base** with Properties table containing:
    - `Image Folder URL` field (Google Drive folder URL or ID)
@@ -158,13 +158,17 @@ After deployment, note the Worker URL from the output:
 
 **Production:**
 ```
-✨  Deployed to https://rental-manager-image-sync.your-subdomain.workers.dev
+✨  Deployed to https://rental-manager-image-sync.dwx-rental.workers.dev
 ```
 
 **Demo:**
 ```
-✨  Deployed to https://rental-manager-image-sync-demo.your-subdomain.workers.dev
+✨  Deployed to https://rental-manager-image-sync-demo.dwx-rental.workers.dev
 ```
+
+**On-demand sync URLs:**
+- Production: `https://rental-manager-image-sync.dwx-rental.workers.dev/sync`
+- Demo: `https://rental-manager-image-sync-demo.dwx-rental.workers.dev/sync`
 
 ## Usage
 
@@ -172,15 +176,24 @@ After deployment, note the Worker URL from the output:
 
 Trigger a bulk sync manually via HTTP:
 
-**Without authentication (if SYNC_SECRET not set):**
+**Production:**
 ```bash
-curl https://your-worker.workers.dev/sync
+# Without authentication (if SYNC_SECRET not set)
+curl https://rental-manager-image-sync.dwx-rental.workers.dev/sync
+
+# With authentication (if SYNC_SECRET is set)
+curl -H "Authorization: Bearer your-secret-here" \
+  https://rental-manager-image-sync.dwx-rental.workers.dev/sync
 ```
 
-**With authentication (if SYNC_SECRET is set):**
+**Demo:**
 ```bash
+# Without authentication (if SYNC_SECRET not set)
+curl https://rental-manager-image-sync-demo.dwx-rental.workers.dev/sync
+
+# With authentication (if SYNC_SECRET is set)
 curl -H "Authorization: Bearer your-secret-here" \
-  https://your-worker.workers.dev/sync
+  https://rental-manager-image-sync-demo.dwx-rental.workers.dev/sync
 ```
 
 **Response:**
@@ -347,7 +360,14 @@ After a sync, verify images are in your R2 bucket:
 
 After deploying the worker:
 
-1. ✅ **Test manual trigger** - Run `curl` to verify sync works
+1. ✅ **Test manual trigger** - Run sync on-demand:
+   ```bash
+   # Production
+   curl https://rental-manager-image-sync.dwx-rental.workers.dev/sync
+   
+   # Demo
+   curl https://rental-manager-image-sync-demo.dwx-rental.workers.dev/sync
+   ```
 2. ✅ **Monitor first sync** - Use `npx wrangler tail` to watch progress
 3. ✅ **Verify images in R2** - Check that images appear correctly
 4. ✅ **Test hash comparison** - Run sync twice, second should skip unchanged files
@@ -355,6 +375,6 @@ After deploying the worker:
 6. ✅ **Verify in Next.js app** - Check that synced images display correctly
 
 For more information, see:
-- `../GOOGLE_DRIVE_SETUP.md` - Google Drive API setup
-- `../R2_SETUP.md` - R2 bucket configuration
-- `../R2_IMAGE_NAMING.md` - Image naming and sorting details
+- `../docs/GOOGLE_DRIVE_SETUP.md` - Google Drive API setup
+- `../docs/R2_SETUP.md` - R2 bucket configuration
+- `../docs/R2_IMAGE_NAMING.md` - Image naming and sorting details

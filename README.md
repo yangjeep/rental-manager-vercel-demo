@@ -48,12 +48,12 @@ Images are automatically synced from Google Drive to Cloudflare R2 when you upda
 
 **Setup Steps:**
 
-1. **Set up Cloudflare R2 Bucket** (See `R2_SETUP.md` for detailed instructions)
+1. **Set up Cloudflare R2 Bucket** (See `docs/R2_SETUP.md` for detailed instructions)
    - Create R2 bucket in Cloudflare Dashboard
    - Enable public access and note the public URL
    - Add `R2_PUBLIC_URL` to your `.env.local`
 
-2. **Set up Google Drive API** (See `GOOGLE_DRIVE_SETUP.md` for detailed instructions)
+2. **Set up Google Drive API** (See `docs/GOOGLE_DRIVE_SETUP.md` for detailed instructions)
    - Create API key or service account in Google Cloud Console
    - Enable Google Drive API
 
@@ -72,7 +72,7 @@ Images are automatically synced from Google Drive to Cloudflare R2 when you upda
    ```
 
 4. **Configure Airtable Automation**:
-   - See `AIRTABLE_WEBHOOK_SETUP.md` for detailed step-by-step instructions
+   - See `docs/AIRTABLE_WEBHOOK_SETUP.md` for detailed step-by-step instructions
    - Quick summary:
      - Create automation with trigger: "When record matches conditions" (Image Folder URL is not empty)
      - Add action: "Send webhook" to your Worker URL

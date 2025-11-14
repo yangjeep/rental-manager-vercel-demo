@@ -208,6 +208,6 @@ After setting up the webhook:
 
 For more information, see:
 - `worker/README.md` - Worker deployment and configuration
-- `GOOGLE_DRIVE_SETUP.md` - Google Drive API setup
-- `R2_SETUP.md` - R2 bucket configuration
+- `GOOGLE_DRIVE_SETUP.md` - Google Drive API setup (same directory)
+- `R2_SETUP.md` - R2 bucket configuration (same directory)
 
