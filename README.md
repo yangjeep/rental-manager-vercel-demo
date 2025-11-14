@@ -58,18 +58,9 @@ Images are automatically synced from Google Drive to Cloudflare R2 when you upda
    - Enable Google Drive API
 
 3. **Deploy Cloudflare Worker**:
-   ```bash
-   cd worker
-   npm install
-   
-   # Set up secrets
-   npx wrangler secret put GOOGLE_DRIVE_API_KEY
-   npx wrangler secret put AIRTABLE_WEBHOOK_SECRET
-   
-   # Deploy
-   npm run deploy
-   # Note the Worker URL (e.g., https://rental-manager-image-sync.your-subdomain.workers.dev)
-   ```
+   - The worker is now in a separate repository: `gdrive-cfr2-image-sync`
+   - See the worker repository for deployment instructions
+   - After deployment, note the Worker URL (e.g., https://rental-manager-image-sync.your-subdomain.workers.dev)
 
 4. **Configure Airtable Automation**:
    - See `docs/AIRTABLE_WEBHOOK_SETUP.md` for detailed step-by-step instructions
@@ -189,5 +180,5 @@ Results are uploaded as artifacts and the workflow will fail if performance thre
 - `R2_BUCKET_NAME` — R2 bucket name (defaults to "rental-manager-images")
 
 **For image sync (if using R2):**
-- See `worker/README.md` for Worker-specific environment variables
+- See the `gdrive-cfr2-image-sync` repository for Worker-specific environment variables
 

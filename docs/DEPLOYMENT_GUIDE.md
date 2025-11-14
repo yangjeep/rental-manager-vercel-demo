@@ -49,35 +49,21 @@ Your realtor will simply paste a Google Drive folder URL into AirTable. The syst
 
 **Manual steps required:**
 
-```bash
-# 1. Navigate to worker directory
-cd worker
+The Cloudflare Worker is now in a separate repository: `gdrive-cfr2-image-sync`
 
-# 2. Install dependencies
-npm install
+**Deployment steps:**
+1. Clone the worker repository
+2. Install dependencies: `npm install`
+3. Set up secrets (see worker repository README for details):
+   - `GOOGLE_DRIVE_API_KEY` (or `GOOGLE_SERVICE_ACCOUNT_JSON`)
+   - `AIRTABLE_TOKEN`
+   - `AIRTABLE_BASE_ID`
+   - `SYNC_SECRET` (required for Bearer token authentication)
+4. Deploy: `npm run deploy`
+5. Copy the Worker URL from the output
+   - Example: https://rental-manager-image-sync.your-subdomain.workers.dev
 
-# 3. Set up Google Drive credentials (choose one)
-# Option A: API Key (simpler)
-npx wrangler secret put GOOGLE_DRIVE_API_KEY
-# Paste your API key when prompted
-
-# Option B: Service Account (more secure)
-# npx wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON
-# Paste the entire JSON content (minified) when prompted
-
-# 4. Set up webhook security
-npx wrangler secret put AIRTABLE_WEBHOOK_SECRET
-# Enter a random secret (e.g., generate at: https://randomkeygen.com/)
-# SAVE THIS SECRET - you'll need it for AirTable setup
-
-# 5. Deploy the worker
-npm run deploy
-
-# 6. Copy the Worker URL from the output
-# Example: https://rental-manager-image-sync.your-subdomain.workers.dev
-```
-
-📖 Detailed instructions: See `worker/README.md`
+📖 Detailed instructions: See the `gdrive-cfr2-image-sync` repository README
 
 ---
 
@@ -182,11 +168,9 @@ Expected response:
 ### Images not syncing from Drive to R2
 
 1. **Check Worker logs:**
-   ```bash
-   cd worker
-   npx wrangler tail
-   ```
-   Trigger the sync and watch for errors
+   - Navigate to the worker repository
+   - Run `npx wrangler tail` to view logs
+   - Trigger the sync and watch for errors
 
 2. **Common issues:**
    - Drive folder not shared publicly (if using API key)
@@ -238,10 +222,8 @@ After completing deployment:
    - Images will sync automatically in 5-10 seconds
 
 2. ✅ Monitor Worker logs for first few days
-   ```bash
-   cd worker
-   npx wrangler tail
-   ```
+   - Navigate to the worker repository
+   - Run `npx wrangler tail` to view logs
 
 3. ✅ Set up custom domain for Worker (optional)
    - More professional webhook URL
@@ -257,7 +239,7 @@ After completing deployment:
 
 - **R2 Setup:** See `R2_SETUP.md`
 - **Google Drive API:** See `GOOGLE_DRIVE_SETUP.md`
-- **Worker Details:** See `worker/README.md`
+- **Worker Details:** See the `gdrive-cfr2-image-sync` repository README
 - **Main Documentation:** See `README.md`
 
 Happy deploying! 🚀

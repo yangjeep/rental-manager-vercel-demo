@@ -24,8 +24,8 @@ The Cloudflare Worker needs access to Google Drive API to download images from f
 
 ### Add to Worker Secrets:
 
+Navigate to the worker repository and run:
 ```bash
-cd worker
 npx wrangler secret put GOOGLE_DRIVE_API_KEY
 # Paste your API key when prompted
 ```
@@ -62,8 +62,8 @@ npx wrangler secret put GOOGLE_DRIVE_API_KEY
 
 ### Add to Worker Secrets:
 
+Navigate to the worker repository and run:
 ```bash
-cd worker
 npx wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON
 # Paste the entire JSON content when prompted (minified, single line)
 ```
