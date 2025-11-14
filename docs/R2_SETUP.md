@@ -64,6 +64,6 @@ R2_BUCKET_NAME=rental-manager-images
 
 After completing R2 setup, proceed to:
 1. Set up Google Drive API (see `GOOGLE_DRIVE_SETUP.md`)
-2. Deploy the Cloudflare Worker (see `../worker/README.md`)
+2. Deploy the Cloudflare Worker (see the `gdrive-cfr2-image-sync` repository README)
 3. Configure AirTable automation (see `../README.md`)
 

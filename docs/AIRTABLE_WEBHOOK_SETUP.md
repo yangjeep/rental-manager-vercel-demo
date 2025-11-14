@@ -6,7 +6,7 @@ This guide walks you through setting up an Airtable automation that triggers the
 
 Before setting up the webhook, ensure you have:
 
-1. ✅ **Cloudflare Worker deployed** (see `worker/README.md`)
+1. ✅ **Cloudflare Worker deployed** (see the `gdrive-cfr2-image-sync` repository README)
    - **Production Worker URL:** `https://rental-manager-image-sync.your-subdomain.workers.dev`
    - **Demo Worker URL:** `https://rental-manager-image-sync-demo.your-subdomain.workers.dev`
    - Worker secrets configured: `GOOGLE_DRIVE_API_KEY` and `AIRTABLE_WEBHOOK_SECRET` (per environment)
@@ -207,7 +207,7 @@ After setting up the webhook:
 5. ✅ Update remaining properties with Image Folder URLs
 
 For more information, see:
-- `worker/README.md` - Worker deployment and configuration
+- `gdrive-cfr2-image-sync` repository README - Worker deployment and configuration
 - `GOOGLE_DRIVE_SETUP.md` - Google Drive API setup (same directory)
 - `R2_SETUP.md` - R2 bucket configuration (same directory)
 
