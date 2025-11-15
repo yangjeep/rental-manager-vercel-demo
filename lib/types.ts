@@ -1,6 +1,5 @@
 export type Listing = {
   id: string;
-  airtableRecordId?: string;     // Airtable record ID (e.g., "recXXXXXXXXXXXX")
   title: string;
   slug: string;
   price: number;                 // from "Monthly Rent"
@@ -13,8 +12,8 @@ export type Listing = {
   pets?: "Allowed" | "Not Allowed" | "Conditional" | string;
   description?: string;
 
-  imageUrl?: string;             // cover fallback
-  images?: string[];             // gallery (when DRIVE_LIST_ENDPOINT is set)
-  imageFolderUrl?: string;       // raw folder link
+  imageUrl?: string;             // cover image (first from images array)
+  images?: string[];             // gallery images from image_folder_url_r2_urls
+  imageFolderUrl?: string;       // raw folder link (legacy)
 };
 
